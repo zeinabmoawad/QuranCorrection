@@ -815,50 +815,50 @@ class GenericQuranPhoneticScript:
         
         # ========== 8. ADDITIONAL SIFA RULES ==========
         
-        def hams_condition(text: str, pos: int, ctx: Dict) -> bool:
-            if pos >= len(text):
-                return False
-            return text[pos] in self.hams_letters
+        # def hams_condition(text: str, pos: int, ctx: Dict) -> bool:
+        #     if pos >= len(text):
+        #         return False
+        #     return text[pos] in self.hams_letters
         
-        self.tajweed_rules.append(TajweedRule(
-            name="hams",
-            category=TajweedRuleCategory.HAMS,
-            pattern="",
-            sifa_output=SifaAttributes.HAMS.value,
-            duration=1,
-            description="Whispered articulation",
-            condition_func=hams_condition
-        ))
+        # self.tajweed_rules.append(TajweedRule(
+        #     name="hams",
+        #     category=TajweedRuleCategory.HAMS,
+        #     pattern="",
+        #     sifa_output=SifaAttributes.HAMS.value,
+        #     duration=1,
+        #     description="Whispered articulation",
+        #     condition_func=hams_condition
+        # ))
         
-        def jahr_condition(text: str, pos: int, ctx: Dict) -> bool:
-            if pos >= len(text):
-                return False
-            return text[pos] in self.jahr_letters
+        # def jahr_condition(text: str, pos: int, ctx: Dict) -> bool:
+        #     if pos >= len(text):
+        #         return False
+        #     return text[pos] in self.jahr_letters
         
-        self.tajweed_rules.append(TajweedRule(
-            name="jahr",
-            category=TajweedRuleCategory.JAHR,
-            pattern="",
-            sifa_output=SifaAttributes.JAHR.value,
-            duration=1,
-            description="Voiced articulation",
-            condition_func=jahr_condition
-        ))
+        # self.tajweed_rules.append(TajweedRule(
+        #     name="jahr",
+        #     category=TajweedRuleCategory.JAHR,
+        #     pattern="",
+        #     sifa_output=SifaAttributes.JAHR.value,
+        #     duration=1,
+        #     description="Voiced articulation",
+        #     condition_func=jahr_condition
+        # ))
         
-        def safeer_condition(text: str, pos: int, ctx: Dict) -> bool:
-            if pos >= len(text):
-                return False
-            return text[pos] in self.safeer_letters
+        # def safeer_condition(text: str, pos: int, ctx: Dict) -> bool:
+        #     if pos >= len(text):
+        #         return False
+        #     return text[pos] in self.safeer_letters
         
-        self.tajweed_rules.append(TajweedRule(
-            name="safeer",
-            category=TajweedRuleCategory.SAFEER,
-            pattern="",
-            sifa_output=SifaAttributes.SAFEER.value,
-            duration=1,
-            description="Whistling sound",
-            condition_func=safeer_condition
-        ))
+        # self.tajweed_rules.append(TajweedRule(
+        #     name="safeer",
+        #     category=TajweedRuleCategory.SAFEER,
+        #     pattern="",
+        #     sifa_output=SifaAttributes.SAFEER.value,
+        #     duration=1,
+        #     description="Whistling sound",
+        #     condition_func=safeer_condition
+        # ))
     
     def _init_rule_dependencies(self):
         """Initialize rule dependencies and conflict resolution"""
@@ -1169,7 +1169,44 @@ class GenericQuranPhoneticScript:
         output.append("\n" + "=" * 80)
         return '\n'.join(output)
 
+    def extract_tajweed_rules_for_words(self,arabic_text: str) -> Dict[str, TajweedRule]:
+        """
+        Extract Tajweed rules for each word in the Arabic text.
+        Returns a dictionary where each word is mapped to a list of applicable Tajweed rules.
+        """
+        # Normalize and split the text into words
+        normalized_text = self.normalize_arabic(arabic_text)
+        words = normalized_text.split()
 
+        # Prepare dictionary to store words and their corresponding Tajweed rules
+        word_tajweed_rules = {}
+
+        # Iterate over words and check applicable rules
+        for word in words:
+            # Initialize the context and result list for each word
+            word_context = {'text': word}
+            word_rules = []
+
+            # Check rules for each character in the word
+            for pos in range(len(word)):
+                context = self.get_letter_context(word, pos)
+                phoneme = word[pos]  # Start with the character itself as phoneme
+                matching_rules = []
+
+                # Find all matching rules for the character at this position
+                for rule in self.tajweed_rules:
+                    if rule.matches(word, pos, context):
+                        matching_rules.append(rule.name)
+
+                # If there are matching rules, apply them to the word
+                if matching_rules:
+                    word_rules.extend(matching_rules)
+
+            # Store the word and its matching rules in the dictionary
+            if word_rules:
+                word_tajweed_rules[word] = word_rules
+
+        return word_tajweed_rules
 # ==================== CONVENIENCE FUNCTIONS ====================
 
 def extract_tajweed_rules(arabic_text: str, qiraat: str = "hafs") -> Dict[str, Any]:
@@ -1177,8 +1214,7 @@ def extract_tajweed_rules(arabic_text: str, qiraat: str = "hafs") -> Dict[str, A
     Convenience function to extract Tajweed rules from any Arabic text
     """
     processor = GenericQuranPhoneticScript(qiraat=qiraat)
-    return processor.extract_rules_only(arabic_text)
-
+    return processor.extract_tajweed_rules_for_words(arabic_text)
 
 def print_tajweed_rules(arabic_text: str, detailed: bool = False) -> None:
     """
@@ -1220,37 +1256,46 @@ def analyze_verse(arabic_text: str) -> Dict[str, Any]:
     return analysis
 
 
+
+
+
 # ==================== EXAMPLE USAGE ====================
 
-if __name__ == "__main__":
-    # Test with multiple verses
-    test_verses = [
-        "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-        "قُلْ هُوَ اللَّهُ أَحَدٌ",
-        "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-        "مَالِكِ يَوْمِ الدِّينِ",
-        "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ"
-    ]
+# if __name__ == "__main__":
+#     # Test with multiple verses
+#     test_verses = [
+#         "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+#         "قُلْ هُوَ اللَّهُ أَحَدٌ",
+#         "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+#         "مَالِكِ يَوْمِ الدِّينِ",
+#         "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ"
+#     ]
     
-    print("\n" + "=" * 80)
-    print("GENERIC TAJWEED RULES EXTRACTION SYSTEM")
-    print("=" * 80)
+#     # print("\n" + "=" * 80)
+#     # print("GENERIC TAJWEED RULES EXTRACTION SYSTEM")
+#     # print("=" * 80)
     
-    for i, verse in enumerate(test_verses, 1):
-        print(f"\n\nTEST VERSE {i}:")
-        print("-" * 40)
-        print(print_tajweed_rules(verse, detailed=True))
+#     for i, verse in enumerate(test_verses, 1):
+#         print(f"\n\nTEST VERSE {i}:")
+#         print("-" * 40)
+#         # print(print_tajweed_rules(verse, detailed=True))
+#         print(extract_tajweed_rules(verse))
     
-    # Example of detailed analysis
-    print("\n" + "=" * 80)
-    print("DETAILED ANALYSIS EXAMPLE")
-    print("=" * 80)
+    # # Example of detailed analysis
+    # print("\n" + "=" * 80)
+    # print("DETAILED ANALYSIS EXAMPLE")
+    # print("=" * 80)
     
-    bismillah = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
-    analysis = analyze_verse(bismillah)
+    # bismillah = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+    # analysis = analyze_verse(bismillah)
     
-    print(f"\nText: {analysis['text']}")
-    print(f"Phonetic: {analysis['phonetic']}")
-    print(f"\nStatistics:")
-    for key, value in analysis['statistics'].items():
-        print(f"  {key}: {value}")
+    # print(f"\nText: {analysis['text']}")
+    # print(f"Phonetic: {analysis['phonetic']}")
+    # print(f"Sifa: {analysis['sifa']}")
+    # print(f"\nRules Applied:")
+    # for rule in analysis['rules']:
+    #     print(f"  - Rule: {rule['rule']}, Category: {rule['category']}, "
+    #           f"Position: {rule['position']}, Char: '{rule['char']}', Effect: {rule['effect']}")
+    # print(f"\nStatistics:")
+    # for key, value in analysis['statistics'].items():
+    #     print(f"  {key}: {value}")
