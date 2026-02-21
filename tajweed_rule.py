@@ -5,6 +5,7 @@ Complete Quran Phonetic Script (QPS) - Generic Tajweed Rules Implementation
 A fully generic system that extracts and applies ALL Tajweed rules to ANY Quranic text
 """
 
+from pydoc import text
 from typing import List, Tuple, Dict, Optional, Any, Union
 import re
 from enum import Enum
@@ -538,12 +539,16 @@ class GenericQuranPhoneticScript:
         ))
         
         # ========== 3. LAM DEFINITE RULES ==========
-        
+        def remove_tashkeel(text):
+            tashkeel = re.compile(r'[\u0617-\u061A\u064B-\u0652]')
+            return re.sub(tashkeel, '', text)
+                
         def lam_shamsiyyah_condition(text: str, pos: int, ctx: Dict) -> bool:
-            if pos < 1 or pos + 2 >= len(text):
+            text_no_tashkeel = remove_tashkeel(text)
+            if pos < 1 or pos + 2 >= len(text_no_tashkeel):
                 return False
-            return (text[pos - 1] == 'ا' and text[pos] == 'ل' and
-                    text[pos + 2] in self.shamsi_letters)
+            return (text_no_tashkeel[pos - 1] == 'ا' and text_no_tashkeel[pos] == 'ل' and
+                    text_no_tashkeel[pos + 2] in self.shamsi_letters)
         
         self.tajweed_rules.append(TajweedRule(
             name="lam_shamsiyyah",
@@ -556,10 +561,11 @@ class GenericQuranPhoneticScript:
         ))
         
         def lam_qamariyyah_condition(text: str, pos: int, ctx: Dict) -> bool:
-            if pos < 1 or pos + 2 >= len(text):
+            text_no_tashkeel = remove_tashkeel(text)
+            if pos < 1 or pos + 2 >= len(text_no_tashkeel):
                 return False
-            return (text[pos - 1] == 'ا' and text[pos] == 'ل' and
-                    text[pos + 2] in self.qamari_letters)
+            return (text_no_tashkeel[pos - 1] == 'ا' and text_no_tashkeel[pos] == 'ل' and
+                    text_no_tashkeel[pos + 2] in self.qamari_letters)
         
         self.tajweed_rules.append(TajweedRule(
             name="lam_qamariyyah",
@@ -1275,11 +1281,11 @@ def analyze_verse(arabic_text: str) -> Dict[str, Any]:
 #     # print("GENERIC TAJWEED RULES EXTRACTION SYSTEM")
 #     # print("=" * 80)
     
-#     for i, verse in enumerate(test_verses, 1):
-#         print(f"\n\nTEST VERSE {i}:")
-#         print("-" * 40)
-#         # print(print_tajweed_rules(verse, detailed=True))
-#         print(extract_tajweed_rules(verse))
+    # for i, verse in enumerate(test_verses, 1):
+    #     print(f"\n\nTEST VERSE {i}:")
+    #     print("-" * 40)
+        # print(print_tajweed_rules(verse, detailed=True))
+# print(extract_tajweed_rules( "صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ"))
     
     # # Example of detailed analysis
     # print("\n" + "=" * 80)

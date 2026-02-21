@@ -17,14 +17,19 @@ with open("data.jsonl", "w", encoding="utf-8") as json_file:
             print(f"Processing file: {filepath}")
             aya_with_tashkeel = data_aya.iloc[j]["ayah_ar"]
             aya_without_tashkeel = remove_tashkeel(aya_with_tashkeel)
+            path = "\\content\\" + filepath
+            path = path.replace("\\", "/")
             data = {
-                "audio": filepath,
+                "audio": path,
                 "aya_with_tashkeel": str(aya_with_tashkeel),
                 "aya_without_tashkeel": str(aya_without_tashkeel),
                 "surah_name": str(data_aya.iloc[j]["surah_name_roman"]),
                 "ayah": int(data_aya.iloc[j]["ayah_no_surah"]),  # convert to Python int
                 "reciter": folderpath.split(os.sep)[-1] , # extract reciter name from folder path
-                "tajweed_rules": extract_tajweed_rules(aya_with_tashkeel)  # extract tajweed rules
+                "tajweed_rules": extract_tajweed_rules(aya_with_tashkeel),  # extract tajweed rules
+                "error_exit": False,  # flag to indicate if there was an error during reading
+                "Feedback_message": "All tajweed rules extracted successfully"  # field to store error message if any
+
             }
 
             json_file.write(json.dumps(data, ensure_ascii=False) + "\n")
